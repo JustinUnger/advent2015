@@ -1,4 +1,10 @@
+{- 
+I found this one rather difficult. Trying to check for overlap on check1 took a long time. Most people seemed to solve this with regex. 
+-}
+
+
 import Data.List
+import Data.Ord
 
 main = do
   input <- readFile "day5_input.txt"
@@ -9,14 +15,18 @@ foo = do
   return (lines input)
 
 nice :: String -> Bool
-nice xs = check1' xs && check2 xs
+nice xs = check1 xs && check2 xs
 
-check1 :: String -> Bool
-check1 xs = isJust $ find (\x -> length x >= 2) $ groupedPairs xs
+check1' :: String -> Bool
+check1' xs = isJust $ find (\x -> length x >= 2) $ groupedPairs xs
 
-check1' xs = case (find (\x -> length x >= 2) $ groupedPairs xs) of
-               Nothing -> False
-               Just ([x,y]:_)  -> if (x /= y) then True else not (isJust $ trip x xs)
+check1 xs = check1' xs && not (overlap xs)
+
+overlap xs = case find (\x -> length x >= 2) (proximity xs) of
+                Nothing -> True
+                Just xs -> if (fst $ last xs) - (fst $ head xs) < 2 then True else False 
+
+proximity xs = groupBy (\x y -> snd x == snd y) $ sortBy (comparing snd) $ zip [0..] $ pairs xs
 
 trip x xs = find (\(a,b,c) -> a == b && b == c && a == x) (triples xs)
 
@@ -58,3 +68,5 @@ test4Pass = nice test4 == False
 test5Pass = nice test5 == False
 test6Pass = nice test6 == True
 test7Pass = nice test7 == False
+
+testPass = and [test1Pass, test2Pass, test3Pass, test4Pass, test5Pass, test6Pass, test7Pass]
